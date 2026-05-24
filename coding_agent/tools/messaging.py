@@ -1,6 +1,7 @@
 """Messaging and task management tools for Slack, Telegram, and Jira."""
 
 import json
+import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Optional
@@ -106,8 +107,6 @@ class SlackClient(MessagingClient):
     def connect(self) -> ToolResult:
         """Test connection to Slack API."""
         try:
-            import os
-
             token = self.token or os.environ.get("SLACK_BOT_TOKEN")
             if not token:
                 return ToolResult(
@@ -287,8 +286,6 @@ class TelegramClient(MessagingClient):
     def connect(self) -> ToolResult:
         """Test connection to Telegram API."""
         try:
-            import os
-
             token = self.token or os.environ.get("TELEGRAM_BOT_TOKEN")
             if not token:
                 return ToolResult(
@@ -465,8 +462,6 @@ class JiraClient(MessagingClient):
     def connect(self) -> ToolResult:
         """Test connection to Jira API."""
         try:
-            import os
-
             url = self.url or os.environ.get("JIRA_URL")
             email = self.email or os.environ.get("JIRA_EMAIL")
             api_token = self.api_token or os.environ.get("JIRA_TOKEN")

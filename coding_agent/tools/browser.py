@@ -27,6 +27,7 @@ class BrowserTools:
         self._browser = None
         self._context = None
         self._page = None
+        self._playwright = None
 
     async def _get_page(self):
         """Get or create a browser page."""
@@ -39,8 +40,8 @@ class BrowserTools:
         from playwright.async_api import async_playwright
         
         if self._browser is None:
-            playwright = await async_playwright().start()
-            self._browser = await playwright.chromium.launch(headless=self.headless)
+            self._playwright = await async_playwright().start()
+            self._browser = await self._playwright.chromium.launch(headless=self.headless)
         
         if self._context is None:
             self._context = await self._browser.new_context(
@@ -56,6 +57,9 @@ class BrowserTools:
         if self._browser:
             await self._browser.close()
             self._browser = None
+        if self._playwright:
+            await self._playwright.stop()
+            self._playwright = None
         self._page = None
 
 

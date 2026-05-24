@@ -226,8 +226,6 @@ class ListProcessesTool(Tool):
         Returns:
             ToolResult with process list or error.
         """
-        import os
-
         try:
             pattern = kwargs.get("pattern")
             limit = kwargs.get("limit", 50)
@@ -316,8 +314,6 @@ class GetProcessInfoTool(Tool):
         Returns:
             ToolResult with process info or error.
         """
-        import os
-
         try:
             pid = kwargs.get("pid")
 
