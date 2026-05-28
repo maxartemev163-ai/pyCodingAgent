@@ -1,6 +1,7 @@
 """LLM module for OpenAI-compatible model connections."""
 
 from .client import LLMClient
-from .message import Message, Role
+from .langchain_client import LangChainClient
+from .message import Message, Role, ToolCall
 
-__all__ = ["LLMClient", "Message", "Role"]
+__all__ = ["LLMClient", "LangChainClient", "Message", "Role", "ToolCall"]

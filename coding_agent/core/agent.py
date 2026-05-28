@@ -2,11 +2,11 @@
 
 import json
 import logging
-from typing import Optional
+from pathlib import Path
+from typing import Literal, Optional
 
 from ..config import ModelConfig, Settings
-from ..llm import LLMClient, Message, Role
-from ..llm.message import ToolCall
+from ..llm import LangChainClient, LLMClient, Message, Role, ToolCall
 from ..tools import ToolRegistry, ToolResult
 from .context import ConversationContext
 
@@ -27,6 +27,7 @@ class CodingAgent:
         settings: Agent configuration settings.
         model_config: LLM model configuration.
         tool_registry: Registry of available tools.
+        client_type: Type of LLM client to use ('langchain' or 'native').
     """
 
     def __init__(
@@ -35,6 +36,8 @@ class CodingAgent:
         model_config: Optional[ModelConfig] = None,
         tool_registry: Optional[ToolRegistry] = None,
         prepare_context: bool = True,
+        client_type: Literal["langchain", "native"] = "langchain",
+        logs_dir: Optional[str] = None,
     ) -> None:
         """Initialize the coding agent.
 
@@ -43,10 +46,16 @@ class CodingAgent:
             model_config: LLM configuration. Uses defaults if not provided.
             tool_registry: Tool registry. Creates empty registry if not provided.
             prepare_context: Whether to prepare session context before starting.
+            client_type: Type of LLM client to use. 'langchain' for LangChain-based
+                        client with logging, 'native' for original httpx-based client.
+            logs_dir: Directory for storing LLM request/response logs.
+                     Only used when client_type='langchain'. 
+                     Defaults to 'logs' directory in workspace if not provided.
         """
         self.settings = settings or Settings()
         self.model_config = model_config or ModelConfig()
         self.tool_registry = tool_registry or ToolRegistry()
+        self.client_type = client_type
 
         # Prepare session context if requested
         session_context_str = None
@@ -65,7 +74,17 @@ class CodingAgent:
             if skills_context:
                 session_context_str = session_context_str + "\n\n" + skills_context
 
-        self._client = LLMClient(self.model_config)
+        # Initialize LLM client based on type
+        if client_type == "langchain":
+            # Determine logs directory
+            if logs_dir is None:
+                logs_dir = Path(self.settings.workspace_dir) / "logs"
+            self._client = LangChainClient(self.model_config, logs_dir=logs_dir)
+            logger.info(f"Using LangChain client with logs directory: {logs_dir}")
+        else:
+            self._client = LLMClient(self.model_config)
+            logger.info("Using native httpx-based LLM client")
+            
         self._context = ConversationContext(
             max_length=self.settings.max_iterations,
             system_prompt=self._get_default_system_prompt(),
@@ -309,7 +328,3 @@ REMEMBER:
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         """Context manager exit."""
         self.close()
-
-
-# Import Path here to avoid circular imports
-from pathlib import Path

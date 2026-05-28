@@ -78,7 +78,7 @@ class TestCodingAgentInitialization:
 class TestCodingAgentRun:
     """Tests for CodingAgent run method."""
 
-    @patch("coding_agent.core.agent.LLMClient")
+    @patch("coding_agent.core.agent.LangChainClient")
     def test_run_without_tool_calls(self, mock_llm_client_class):
         """Test running agent when LLM returns no tool calls."""
         mock_client = MagicMock()
@@ -91,7 +91,7 @@ class TestCodingAgentRun:
         assert result == "Hello! How can I help?"
         mock_client.chat.assert_called_once()
 
-    @patch("coding_agent.core.agent.LLMClient")
+    @patch("coding_agent.core.agent.LangChainClient")
     def test_run_with_tool_calls(self, mock_llm_client_class):
         """Test running agent when LLM returns tool calls."""
         mock_client = MagicMock()
@@ -114,7 +114,7 @@ class TestCodingAgentRun:
         assert result == "Done!"
         assert mock_client.chat.call_count == 2
 
-    @patch("coding_agent.core.agent.LLMClient")
+    @patch("coding_agent.core.agent.LangChainClient")
     def test_run_handles_llm_error(self, mock_llm_client_class):
         """Test that LLM errors are handled gracefully."""
         mock_client = MagicMock()
@@ -127,7 +127,7 @@ class TestCodingAgentRun:
         assert "Error" in result
         assert "Failed to communicate with LLM" in result
 
-    @patch("coding_agent.core.agent.LLMClient")
+    @patch("coding_agent.core.agent.LangChainClient")
     def test_run_max_iterations_reached(self, mock_llm_client_class):
         """Test that max iterations limit is enforced."""
         mock_client = MagicMock()
@@ -148,7 +148,7 @@ class TestCodingAgentRun:
 
         assert "maximum number of iterations" in result
 
-    @patch("coding_agent.core.agent.LLMClient")
+    @patch("coding_agent.core.agent.LangChainClient")
     def test_run_invalid_json_arguments(self, mock_llm_client_class):
         """Test handling of invalid JSON in tool arguments."""
         mock_client = MagicMock()
@@ -172,7 +172,7 @@ class TestCodingAgentRun:
 class TestCodingAgentToolExecution:
     """Tests for tool execution in CodingAgent."""
 
-    @patch("coding_agent.core.agent.LLMClient")
+    @patch("coding_agent.core.agent.LangChainClient")
     def test_execute_tool_call_success(self, mock_llm_client_class):
         """Test successful tool execution."""
         mock_client = MagicMock()
@@ -194,7 +194,7 @@ class TestCodingAgentToolExecution:
 
         assert "Mock executed" in result or "Done!" in result
 
-    @patch("coding_agent.core.agent.LLMClient")
+    @patch("coding_agent.core.agent.LangChainClient")
     def test_execute_unknown_tool(self, mock_llm_client_class):
         """Test execution of unknown tool."""
         mock_client = MagicMock()
@@ -212,7 +212,7 @@ class TestCodingAgentToolExecution:
         # Should handle unknown tool gracefully
         assert result is not None
 
-    @patch("coding_agent.core.agent.LLMClient")
+    @patch("coding_agent.core.agent.LangChainClient")
     def test_execute_tool_with_exception(self, mock_llm_client_class):
         """Test tool execution that raises an exception."""
         mock_client = MagicMock()
@@ -276,7 +276,7 @@ class TestCodingAgentContextManagement:
         cleared_context = agent.get_context()
         assert len(cleared_context.messages) == 0 or cleared_context.messages[0].role == Role.SYSTEM
 
-    @patch("coding_agent.core.agent.LLMClient")
+    @patch("coding_agent.core.agent.LangChainClient")
     def test_close_agent(self, mock_llm_client_class):
         """Test closing the agent."""
         mock_client = MagicMock()
@@ -289,7 +289,7 @@ class TestCodingAgentContextManagement:
 
     def test_context_manager_enter_exit(self):
         """Test using agent as a context manager."""
-        with patch("coding_agent.core.agent.LLMClient") as mock_llm_client_class:
+        with patch("coding_agent.core.agent.LangChainClient") as mock_llm_client_class:
             mock_client = MagicMock()
             mock_llm_client_class.return_value = mock_client
 

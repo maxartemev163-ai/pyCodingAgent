@@ -55,13 +55,22 @@ class Loader:
             self._thread.join(timeout=0.5)
 
 
-def create_agent(workspace_dir: str, model_config: ModelConfig, prepare_context: bool = True) -> CodingAgent:
+def create_agent(
+    workspace_dir: str,
+    model_config: ModelConfig,
+    prepare_context: bool = True,
+    client_type: str = "langchain",
+    logs_dir: Optional[str] = None,
+) -> CodingAgent:
     """Create and configure a coding agent instance.
     
     Args:
         workspace_dir: Root directory for file operations.
         model_config: LLM model configuration.
         prepare_context: Whether to prepare session context before starting.
+        client_type: Type of LLM client to use ('langchain' or 'native').
+        logs_dir: Directory for storing LLM request/response logs.
+                  Only used when client_type='langchain'.
     
     Returns:
         Configured CodingAgent instance.
@@ -72,7 +81,13 @@ def create_agent(workspace_dir: str, model_config: ModelConfig, prepare_context:
         log_level="INFO",
     )
     
-    agent = CodingAgent(settings=settings, model_config=model_config, prepare_context=prepare_context)
+    agent = CodingAgent(
+        settings=settings,
+        model_config=model_config,
+        prepare_context=prepare_context,
+        client_type=client_type,
+        logs_dir=logs_dir,
+    )
     
     # Register default tools
     agent.register_tool(ReadFileTool(workspace_root=workspace_dir))
@@ -168,7 +183,13 @@ def cmd_chat(args: argparse.Namespace) -> int:
     setup_logging(level=args.log_level)
     
     try:
-        with create_agent(str(workspace_dir), model_config, args.prepare_context) as agent:
+        with create_agent(
+            str(workspace_dir),
+            model_config,
+            args.prepare_context,
+            client_type=args.client_type,
+            logs_dir=args.logs_dir,
+        ) as agent:
             plan_mode = PlanMode(model_config)
             
             print("=" * 60)
@@ -599,7 +620,13 @@ def cmd_run(args: argparse.Namespace) -> int:
     setup_logging(level=args.log_level)
     
     try:
-        with create_agent(str(workspace_dir), model_config, args.prepare_context) as agent:
+        with create_agent(
+            str(workspace_dir),
+            model_config,
+            args.prepare_context,
+            client_type=args.client_type,
+            logs_dir=args.logs_dir,
+        ) as agent:
             response = agent.run(args.command)
             print(response)
     
@@ -680,6 +707,18 @@ def main() -> int:
         dest="prepare_context",
         help="Skip session context preparation",
     )
+    chat_parser.add_argument(
+        "--client-type",
+        choices=["langchain", "native"],
+        default="langchain",
+        help="Type of LLM client to use (default: langchain)",
+    )
+    chat_parser.add_argument(
+        "--logs-dir",
+        type=str,
+        default=None,
+        help="Directory for storing LLM request/response logs (only used with --client-type langchain)",
+    )
     chat_parser.set_defaults(func=cmd_chat)
     
     # Run command
@@ -729,6 +768,18 @@ def main() -> int:
         action="store_false",
         dest="prepare_context",
         help="Skip session context preparation",
+    )
+    run_parser.add_argument(
+        "--client-type",
+        choices=["langchain", "native"],
+        default="langchain",
+        help="Type of LLM client to use (default: langchain)",
+    )
+    run_parser.add_argument(
+        "--logs-dir",
+        type=str,
+        default=None,
+        help="Directory for storing LLM request/response logs (only used with --client-type langchain)",
     )
     run_parser.set_defaults(func=cmd_run)
     

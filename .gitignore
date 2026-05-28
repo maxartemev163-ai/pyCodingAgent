@@ -1,3 +1,4 @@
+```
 # Python
 __pycache__/
 *.py[cod]
@@ -24,7 +25,6 @@ wheels/
 .pytest_cache/
 .coverage
 htmlcov/
-coverage/
 
 # Environment
 .env
@@ -41,9 +41,10 @@ ENV/
 *.swo
 *.tmp
 
+# Logs
+*.log
+
 # OS
 .DS_Store
 Thumbs.db
-
-# Logs
-*.log
+```
