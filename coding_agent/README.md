@@ -10,6 +10,7 @@ A modular and scale coding agent architecture designed for on-device exec w/ loc
 - **Conversation History**: persist context across sessions
 - **Google Style Guide**: Clean, well-documented code follow best practices
 - **KISS DRY**: Simple, maintainable architecture
+- **Desktop GUI**: Native PyQt5 desktop app for interactive coding (like Claude Code Desktop)
 
 ## Architecture
 
@@ -28,6 +29,9 @@ coding_agent/
 ```
 # Install deps
 pip install httpx
+
+# For GUI (optional)
+pip install PyQt5
 
 # For dev
 pip install -r reqs-dev.txt
@@ -75,6 +79,26 @@ w/ CodingAgent(settingssettings, model_configmodel_config) as agent:
 ```
 python -m coding_agent.exs.basic_usage
 ```
+
+### 4. Launch GUI (Desktop App)
+
+For a desktop app experience similar to Claude Code Desktop:
+
+```
+# Install PyQt5 if not already installed
+pip install PyQt5
+
+# Launch the GUI
+python -m coding_agent.gui
+```
+
+The GUI provides:
+- Interactive chat interface with the coding agent
+- File explorer panel showing your workspace
+- Quick command buttons for common actions (Plan, Scan, Clear, Retry)
+- Settings dialog to configure LLM endpoint and workspace
+- Menu bar with tools and options
+- Status bar showing agent state
 
 ## Creating Custom Tools
 

@@ -94,9 +94,9 @@ class TestConversationContext:
         for i in range(10):
             ctx.add_user_message(f"Message {i}")
 
-        # Should have max_length - 1 messages (the trim logic reserves space for potential system msg)
-        assert len(ctx.messages) == 4
-        # Should contain the last 4 messages
+        # Should have max_length messages (smart trimming keeps most recent)
+        assert len(ctx.messages) == 5
+        # Should contain the last 5 messages
         assert ctx.messages[-1].content == "Message 9"
 
     def test_trim_preserves_system_message(self):

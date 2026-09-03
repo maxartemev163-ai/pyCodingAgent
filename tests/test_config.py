@@ -82,14 +82,14 @@ class TestSettings:
         settings = Settings()
 
         assert settings.workspace_dir == "."
-        assert settings.max_iterations == 50
+        assert settings.max_iterations == 15
         assert settings.timeout_seconds == 300
         assert settings.log_level == "INFO"
         assert settings.enable_history is True
         assert settings.history_dir == ".agent_history"
         assert settings.max_context_length == 128000
-        assert settings.temperature == 0.7
-        assert settings.top_p == 0.95
+        assert settings.temperature == 0.2
+        assert settings.top_p == 0.9
 
     def test_custom_values(self):
         """Test creating settings with custom values."""

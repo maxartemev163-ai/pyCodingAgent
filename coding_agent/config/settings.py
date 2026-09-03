@@ -18,14 +18,14 @@ class Settings:
     """
 
     workspace_dir: str = "."
-    max_iterations: int = 50
+    max_iterations: int = 15  # Reduced for small LLMs to prevent infinite loops
     timeout_seconds: int = 300
     log_level: str = "INFO"
     enable_history: bool = True
     history_dir: str = ".agent_history"
     max_context_length: int = 128000
-    temperature: float = 0.7
-    top_p: float = 0.95
+    temperature: float = 0.2  # Lower temperature for more deterministic output (small LLMs)
+    top_p: float = 0.9
 
     def __post_init__(self) -> None:
         """Validate settings after initialization."""

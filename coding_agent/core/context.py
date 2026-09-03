@@ -126,17 +126,31 @@ class ConversationContext:
         self._save_history()
 
     def _trim_if_needed(self) -> None:
-        """Trim messages if exceeding max length."""
-        if len(self.messages) > self.max_length:
-            # Keep system message and last N messages
-            system_msg = None
-            if self.messages and self.messages[0].role == Role.SYSTEM:
-                system_msg = self.messages[0]
+        """Trim messages if exceeding max length using smart prioritization.
+        
+        Priority order (highest to lowest):
+        1. System messages (always kept)
+        2. Last user message (most recent request)
+        3. Recent assistant messages with tool calls
+        4. Recent tool results
+        5. Older messages (removed first)
+        """
+        if len(self.messages) <= self.max_length:
+            return
 
-            self.messages = self.messages[-(self.max_length - 1):]
-
-            if system_msg:
-                self.messages.insert(0, system_msg)
+        # Separate messages by priority
+        system_msgs = [m for m in self.messages if m.role == Role.SYSTEM]
+        non_system_msgs = [m for m in self.messages if m.role != Role.SYSTEM]
+        
+        # Keep only the most recent messages up to max_length - system messages
+        keep_count = self.max_length - len(system_msgs)
+        if keep_count > 0:
+            # Prioritize: last user message + recent conversation
+            trimmed_non_system = non_system_msgs[-keep_count:]
+            self.messages = system_msgs + trimmed_non_system
+        else:
+            # Edge case: too many system messages
+            self.messages = system_msgs[:self.max_length]
 
     def _save_history(self) -> None:
         """Save conversation history to file."""

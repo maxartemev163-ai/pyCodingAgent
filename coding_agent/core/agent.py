@@ -174,6 +174,8 @@ REMEMBER:
         logger.info(f"Processing user request: {user_input[:50]}...")
 
         iteration = 0
+        tool_call_history: list[str] = []  # Track tool calls to detect loops
+        
         while iteration < self.settings.max_iterations:
             iteration += 1
             logger.info(f"Iteration {iteration}/{self.settings.max_iterations}")
@@ -192,7 +194,28 @@ REMEMBER:
             # Execute tool calls if present
             if tool_calls:
                 logger.info(f"Executing {len(tool_calls)} tool call(s)")
+                
+                # Check for repeated tool calls (infinite loop detection)
                 for tool_call in tool_calls:
+                    call_signature = f"{tool_call.name}:{tool_call.arguments}"
+                    
+                    # Count how many times this exact call was made
+                    occurrences = tool_call_history.count(call_signature)
+                    
+                    if occurrences >= 2:
+                        # Detected repetition - break the loop
+                        logger.warning(
+                            f"Detected repeated tool call pattern: '{call_signature}' "
+                            f"(occurred {occurrences + 1} times). Breaking loop to prevent infinite cycling."
+                        )
+                        self._context.add_assistant_message(
+                            "I notice I'm repeating the same action. Let me try a different approach or ask for clarification.\n\n"
+                            f"What I've tried multiple times: {tool_call.name}\n"
+                            "Suggestion: Please provide more specific details about what you'd like me to do differently."
+                        )
+                        self._context._save_history()
+                        return "I noticed I was repeating the same action. Could you please clarify what you'd like me to do?"
+                    
                     result = self._execute_tool_call(tool_call)
                     self._context.add_tool_result(tool_call.id, result.output)
                     logger.info(f"Tool '{tool_call.name}' executed: success={result.success}")
@@ -210,6 +233,9 @@ REMEMBER:
                             print("(empty output)")
                         if not result.success and result.error:
                             print(f"[Error: {result.error}]")
+                    
+                    # Add to history for loop detection
+                    tool_call_history.append(call_signature)
                 
                 # Continue the loop to let LLM process tool results
                 continue

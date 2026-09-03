@@ -26,6 +26,7 @@ class SkillsLoader:
         self,
         workspace_dir: str = ".",
         skills_dirs: list[str] | None = None,
+        max_files: int = 10,  # Limit number of skill files to reduce context
     ) -> None:
         """Initialize the skills loader.
         
@@ -33,9 +34,11 @@ class SkillsLoader:
             workspace_dir: Root directory to scan for skill/rule files.
             skills_dirs: List of directory names to scan. Defaults to 
                 ['skills', 'rules', '.agent'].
+            max_files: Maximum number of skill files to load (prevents context bloat).
         """
         self.workspace_dir = Path(workspace_dir).resolve()
         self.skills_dirs = skills_dirs or ['skills', 'rules', '.agent']
+        self.max_files = max_files
     
     def find_skill_files(self) -> list[Path]:
         """Find all Markdown files containing skills/rules.
@@ -45,7 +48,7 @@ class SkillsLoader:
         - Subdirectories named 'skills', 'rules', or '.agent'
         
         Returns:
-            List of paths to skill/rule Markdown files.
+            List of paths to skill/rule Markdown files (limited by max_files).
         """
         skill_files = []
         
@@ -77,6 +80,17 @@ class SkillsLoader:
                     if subdir.is_dir():
                         for md_file in subdir.glob('*.md'):
                             skill_files.append(md_file)
+        
+        # Limit number of files to prevent context bloat
+        if len(skill_files) > self.max_files:
+            logger.warning(
+                f"Found {len(skill_files)} skill files, limiting to {self.max_files}. "
+                "Prioritizing files by name relevance."
+            )
+            # Prioritize files with 'rule' or 'skill' in name
+            priority_files = [f for f in skill_files if 'rule' in f.name.lower() or 'skill' in f.name.lower()]
+            other_files = [f for f in skill_files if f not in priority_files]
+            skill_files = priority_files[:self.max_files] if len(priority_files) >= self.max_files else priority_files + other_files[:self.max_files - len(priority_files)]
         
         return sorted(set(skill_files))
     
@@ -167,7 +181,7 @@ class SkillsLoader:
         return self.format_for_context(skills)
 
 
-def load_skills_context(workspace_dir: str = ".") -> Optional[str]:
+def load_skills_context(workspace_dir: str = ".", max_files: int = 10) -> Optional[str]:
     """Load and format skills/rules context from workspace directory.
     
     This is a convenience function that creates a SkillsLoader and returns
@@ -175,9 +189,10 @@ def load_skills_context(workspace_dir: str = ".") -> Optional[str]:
     
     Args:
         workspace_dir: Root directory to scan for skill/rule files.
+        max_files: Maximum number of skill files to load (prevents context bloat).
         
     Returns:
         Formatted skills context string, or None if no skills found.
     """
-    loader = SkillsLoader(workspace_dir=workspace_dir)
+    loader = SkillsLoader(workspace_dir=workspace_dir, max_files=max_files)
     return loader.get_skills_context()

@@ -49,6 +49,11 @@ from .git import (
     GitPushTool,
     GitPullRequestTool,
 )
+from .mcp_tools import (
+    MCPToolWrapper,
+    MCPClientManager,
+    connect_mcp,
+)
 
 __all__ = [
     "Tool",
@@ -96,4 +101,7 @@ __all__ = [
     "GitCommitTool",
     "GitPushTool",
     "GitPullRequestTool",
+    "MCPToolWrapper",
+    "MCPClientManager",
+    "connect_mcp",
 ]
